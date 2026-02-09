@@ -15,6 +15,11 @@ export default defineConfig({
   preview: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 4173,
     host: '0.0.0.0',
-    strictPort: false
+    strictPort: false,
+    allowedHosts: [
+      'island-radiology-app-production-f282.up.railway.app',
+      '.railway.app',
+      '.up.railway.app'
+    ]
   }
 })
