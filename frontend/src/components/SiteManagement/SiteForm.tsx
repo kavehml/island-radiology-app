@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
 const API_URL = '/api';
 
-const EQUIPMENT_TYPES = ['CT', 'MRI', 'Ultrasound', 'US', 'PET', 'X-Ray'];
+const EQUIPMENT_TYPES = ['CT', 'MRI', 'Ultrasound', 'US', 'PET', 'X-Ray'] as const;
 
-function SiteForm({ onClose, onSuccess }) {
-  const [formData, setFormData] = useState({
+type EquipmentType = typeof EQUIPMENT_TYPES[number];
+
+interface SiteFormProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+type FacilitiesType = {
+  CT: number;
+  MRI: number;
+  Ultrasound: number;
+  US: number;
+  PET: number;
+  'X-Ray': number;
+};
+
+function SiteForm({ onClose, onSuccess }: SiteFormProps) {
+  const [formData, setFormData] = useState<{
+    name: string;
+    address: string;
+    facilities: FacilitiesType;
+  }>({
     name: '',
     address: '',
     facilities: {
@@ -19,7 +39,7 @@ function SiteForm({ onClose, onSuccess }) {
     }
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -27,7 +47,7 @@ function SiteForm({ onClose, onSuccess }) {
     });
   };
 
-  const handleFacilityChange = (equipmentType, value) => {
+  const handleFacilityChange = (equipmentType: EquipmentType, value: string): void => {
     setFormData({
       ...formData,
       facilities: {
@@ -37,7 +57,7 @@ function SiteForm({ onClose, onSuccess }) {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // First create the site
@@ -63,9 +83,11 @@ function SiteForm({ onClose, onSuccess }) {
       );
 
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating site:', error);
-      alert('Error creating site: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error creating site: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 

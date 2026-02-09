@@ -109,11 +109,6 @@ function RadiologistForm({ radiologist, onClose, onSuccess }: RadiologistFormPro
         
         // Update specialties - remove old ones and add new ones
         // For simplicity, we'll remove all and re-add (you could optimize this)
-        const existingSpecialties = radiologist.specialties || [];
-        const newSpecialtyNames = validSpecialties.map((s: SpecialtyFormData) => s.specialty);
-        const toRemove = existingSpecialties.filter((s: { specialty: string }) => !newSpecialtyNames.includes(s.specialty));
-        
-        // Remove specialties that are no longer in the list
         // Note: We'd need a delete endpoint for this, for now we'll just add/update
       } else {
         // Create new radiologist
