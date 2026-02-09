@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './PatientPortal.css';
+import { API_URL } from '../config/api';
 
 interface RequisitionDetails {
   requisition_number: string;
@@ -44,13 +45,13 @@ const PatientPortal: React.FC = () => {
 
     try {
       // Authenticate
-      await axios.post('/api/patient-portal/authenticate', {
+      await axios.post(`${API_URL}/patient-portal/authenticate`, {
         requisitionNumber,
         patientDob
       });
 
       // Fetch requisition details
-      const response = await axios.get(`/api/patient-portal/requisition/${requisitionNumber}`);
+      const response = await axios.get(`${API_URL}/patient-portal/requisition/${requisitionNumber}`);
       setRequisition(response.data);
       setAuthenticated(true);
     } catch (err: any) {
