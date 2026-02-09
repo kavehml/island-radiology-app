@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import CalendarComponent, { Value } from 'react-calendar';
+import CalendarComponent from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 import { format } from 'date-fns';
 
 const API_URL = '/api';
+
+type ValuePiece = Date | null;
+type Value = ValuePiece | [ValuePiece, ValuePiece];
 
 interface Schedule {
   id: number;
