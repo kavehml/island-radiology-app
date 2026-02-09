@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Site, OrderFormData as OrderFormDataType } from '../../types';
 
 const API_URL = '/api';
 
@@ -14,9 +15,14 @@ const SPECIALTIES = [
   'Mammography'
 ];
 
-function OrderForm({ onClose, onSuccess }) {
-  const [sites, setSites] = useState([]);
-  const [formData, setFormData] = useState({
+interface OrderFormProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function OrderForm({ onClose, onSuccess }: OrderFormProps) {
+  const [sites, setSites] = useState<Site[]>([]);
+  const [formData, setFormData] = useState<Partial<OrderFormDataType>>({
     patientId: '',
     patientName: '',
     orderingPhysician: '',
@@ -45,8 +51,9 @@ function OrderForm({ onClose, onSuccess }) {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -57,12 +64,13 @@ function OrderForm({ onClose, onSuccess }) {
       const priority = name === 'priority' ? value : formData.priority;
       const isTimeSensitive = name === 'isTimeSensitive' ? checked : formData.isTimeSensitive;
       
-      let score = {
+      const priorityScores: Record<string, number> = {
         'stat': 10,
         'urgent': 7,
         'routine': 5,
         'low': 3
-      }[priority] || 5;
+      };
+      let score = priorityScores[priority as string] || 5;
       
       if (isTimeSensitive) {
         score = Math.min(10, score + 2);
@@ -72,7 +80,7 @@ function OrderForm({ onClose, onSuccess }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await axios.post(`${API_URL}/orders`, formData);
@@ -88,9 +96,10 @@ function OrderForm({ onClose, onSuccess }) {
       }
       
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating order:', error);
-      alert('Error creating order: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error creating order: ' + errorMessage);
     }
   };
 
@@ -135,7 +144,7 @@ function OrderForm({ onClose, onSuccess }) {
             <label>Preferred Site (optional):</label>
             <select name="siteId" value={formData.siteId} onChange={handleChange}>
               <option value="">None</option>
-              {sites.map(site => (
+              {sites.map((site: Site) => (
                 <option key={site.id} value={site.id}>{site.name}</option>
               ))}
             </select>

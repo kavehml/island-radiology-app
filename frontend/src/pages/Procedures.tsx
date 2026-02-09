@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProcedureTimeForm from '../components/Procedures/ProcedureTimeForm';
+import { Radiologist, Procedure } from '../types';
 
 const API_URL = '/api';
 
 const CATEGORIES = ['CT', 'MRI', 'Ultrasound', 'PET', 'X-Ray'];
 
 function Procedures() {
-  const [radiologists, setRadiologists] = useState([]);
-  const [procedures, setProcedures] = useState([]);
-  const [selectedRadiologist, setSelectedRadiologist] = useState(null);
-  const [procedureTimes, setProcedureTimes] = useState({});
+  const [radiologists, setRadiologists] = useState<Radiologist[]>([]);
+  const [procedures, setProcedures] = useState<Procedure[]>([]);
+  const [selectedRadiologist, setSelectedRadiologist] = useState<Radiologist | null>(null);
+  const [procedureTimes, setProcedureTimes] = useState<Record<number, { id: number; time: number }>>({});
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(false);
 
@@ -43,13 +44,13 @@ function Procedures() {
     }
   };
 
-  const fetchRadiologistProcedureTimes = async (radiologistId) => {
+  const fetchRadiologistProcedureTimes = async (radiologistId: number): Promise<void> => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/procedures/radiologist/${radiologistId}/times`);
       // Convert array to object for easy lookup: {procedureId: time}
-      const timesMap = {};
-      response.data.forEach(item => {
+      const timesMap: Record<number, { id: number; time: number }> = {};
+      response.data.forEach((item: { procedure_id: number; id: number; average_reporting_time: number }) => {
         timesMap[item.procedure_id] = {
           id: item.id,
           time: item.average_reporting_time
@@ -63,12 +64,12 @@ function Procedures() {
     }
   };
 
-  const handleRadiologistSelect = (radiologistId) => {
+  const handleRadiologistSelect = (radiologistId: number): void => {
     const radiologist = radiologists.find(r => r.id === radiologistId);
-    setSelectedRadiologist(radiologist);
+    setSelectedRadiologist(radiologist || null);
   };
 
-  const handleTimeUpdate = async (procedureId, time) => {
+  const handleTimeUpdate = async (procedureId: number, time: number): Promise<void> => {
     if (!selectedRadiologist) return;
 
     try {
@@ -87,17 +88,19 @@ function Procedures() {
       }
       // Refresh the times
       await fetchRadiologistProcedureTimes(selectedRadiologist.id);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating procedure time:', error);
-      alert('Error updating procedure time: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error updating procedure time: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 
-  const getProceduresByCategory = (category) => {
+  const getProceduresByCategory = (category: string): Procedure[] => {
     if (category === 'all') {
       return procedures;
     }
-    return procedures.filter(p => p.category === category);
+    return procedures.filter((p: Procedure) => p.category === category);
   };
 
   const filteredProcedures = getProceduresByCategory(selectedCategory);
@@ -120,7 +123,7 @@ function Procedures() {
               <h4>{radiologist.name}</h4>
               {radiologist.specialties && radiologist.specialties.length > 0 && (
                 <p className="specialties-preview">
-                  {radiologist.specialties.map(s => s.specialty).join(', ')}
+                  {radiologist.specialties.map((s: { specialty: string }) => s.specialty).join(', ')}
                 </p>
               )}
             </div>

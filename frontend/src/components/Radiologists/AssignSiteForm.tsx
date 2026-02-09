@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Radiologist, Site } from '../../types';
 
 const API_URL = '/api';
 
-function AssignSiteForm({ radiologist, sites, onClose, onSuccess }) {
-  const [selectedSiteId, setSelectedSiteId] = useState('');
-  const [assignedSites, setAssignedSites] = useState([]);
+interface AssignSiteFormProps {
+  radiologist: Radiologist;
+  sites: Site[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function AssignSiteForm({ radiologist, sites, onClose, onSuccess }: AssignSiteFormProps) {
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const [assignedSites, setAssignedSites] = useState<number[]>([]);
 
   useEffect(() => {
     if (radiologist?.sites) {
@@ -13,7 +21,7 @@ function AssignSiteForm({ radiologist, sites, onClose, onSuccess }) {
     }
   }, [radiologist]);
 
-  const handleAssign = async (e) => {
+  const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSiteId) {
       alert('Please select a site');
@@ -26,13 +34,15 @@ function AssignSiteForm({ radiologist, sites, onClose, onSuccess }) {
         siteId: parseInt(selectedSiteId)
       });
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error assigning site:', error);
-      alert('Error assigning site: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error assigning site: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 
-  const handleRemove = async (siteId) => {
+  const handleRemove = async (siteId: number): Promise<void> => {
     if (!confirm('Remove this site assignment?')) {
       return;
     }
@@ -43,13 +53,15 @@ function AssignSiteForm({ radiologist, sites, onClose, onSuccess }) {
         siteId: siteId
       });
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error removing site:', error);
-      alert('Error removing site: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error removing site: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 
-  const availableSites = sites.filter(site => !assignedSites.includes(site.id));
+  const availableSites = sites.filter((site: Site) => !assignedSites.includes(site.id));
 
   return (
     <div className="modal">

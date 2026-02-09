@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
+import { Radiologist } from '../../types';
 
 const API_URL = '/api';
 
-function AddSpecialtyForm({ radiologist, specialties, onClose, onSuccess }) {
+interface AddSpecialtyFormProps {
+  radiologist: Radiologist;
+  specialties: string[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function AddSpecialtyForm({ radiologist, specialties, onClose, onSuccess }: AddSpecialtyFormProps) {
   const [formData, setFormData] = useState({
     specialty: '',
     proficiencyLevel: 5
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -17,7 +25,7 @@ function AddSpecialtyForm({ radiologist, specialties, onClose, onSuccess }) {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await axios.post(`${API_URL}/radiologists/specialty`, {
@@ -26,9 +34,11 @@ function AddSpecialtyForm({ radiologist, specialties, onClose, onSuccess }) {
         proficiencyLevel: formData.proficiencyLevel
       });
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding specialty:', error);
-      alert('Error adding specialty: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error adding specialty: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 

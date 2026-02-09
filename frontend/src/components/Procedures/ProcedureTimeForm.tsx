@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Procedure } from '../../types';
 
-function ProcedureTimeForm({ procedure, currentTime, onTimeUpdate }) {
+interface ProcedureTimeFormProps {
+  procedure: Procedure;
+  currentTime?: number;
+  onTimeUpdate: (time: number) => void;
+}
+
+function ProcedureTimeForm({ procedure, currentTime, onTimeUpdate }: ProcedureTimeFormProps) {
   const [time, setTime] = useState(currentTime || '');
   const [isEditing, setIsEditing] = useState(false);
 
@@ -9,7 +16,7 @@ function ProcedureTimeForm({ procedure, currentTime, onTimeUpdate }) {
     setIsEditing(false);
   }, [currentTime]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (time && parseInt(time) > 0) {
       onTimeUpdate(parseInt(time));

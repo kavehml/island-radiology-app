@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
+import { Order, RoutingResult } from '../../types';
 
 const API_URL = '/api';
 
-function OrderRouting({ order, onRouteComplete }) {
-  const [routingResult, setRoutingResult] = useState(null);
+interface OrderRoutingProps {
+  order: Order;
+  onRouteComplete?: (result: RoutingResult) => void;
+}
+
+function OrderRouting({ order, onRouteComplete }: OrderRoutingProps) {
+  const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRoute = async () => {
@@ -15,9 +21,10 @@ function OrderRouting({ order, onRouteComplete }) {
       if (onRouteComplete) {
         onRouteComplete(response.data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error routing order:', error);
-      alert('Error routing order: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error routing order: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -63,7 +70,7 @@ function OrderRouting({ order, onRouteComplete }) {
                 </tr>
               </thead>
               <tbody>
-                {routingResult.allScores?.map((siteScore, idx) => (
+                {routingResult.allScores?.map((siteScore: { siteName: string; score: number; factors?: { equipmentAvailability?: number; radiologistAvailability?: number; workload?: number } }, idx: number) => (
                   <tr key={idx}>
                     <td>{siteScore.siteName}</td>
                     <td>{siteScore.score}</td>
