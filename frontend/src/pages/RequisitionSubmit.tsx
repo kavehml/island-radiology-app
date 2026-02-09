@@ -4,6 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import './RequisitionSubmit.css';
 import { API_URL } from '../config/api';
 
+const SPECIALTIES = [
+  'General',
+  'Neuroradiology',
+  'Musculoskeletal',
+  'Cardiac',
+  'Pediatric',
+  'Oncology',
+  'Emergency',
+  'Mammography',
+  'Abdominal',
+  'Chest',
+  'Nuclear Medicine'
+] as const;
+
 interface RequisitionFormData {
   // Patient Information
   patientName: string;
@@ -24,6 +38,7 @@ interface RequisitionFormData {
   bodyPart: string;
   clinicalIndication: string;
   priority: 'stat' | 'urgent' | 'routine' | 'low';
+  specialtyRequired: string; // Required radiologist specialty
   isTimeSensitive: boolean;
   timeSensitiveDeadline: string;
   
@@ -55,6 +70,7 @@ const RequisitionSubmit: React.FC = () => {
     bodyPart: '',
     clinicalIndication: '',
     priority: 'routine',
+    specialtyRequired: '',
     isTimeSensitive: false,
     timeSensitiveDeadline: '',
     previousStudies: '',
@@ -75,7 +91,7 @@ const RequisitionSubmit: React.FC = () => {
     setError('');
     setLoading(true);
 
-    if (!formData.patientName || !formData.referringPhysicianName || !formData.orderType) {
+    if (!formData.patientName || !formData.patientDob || !formData.referringPhysicianName || !formData.orderType || !formData.specialtyRequired) {
       setError('Please fill in all required fields (marked with *)');
       setLoading(false);
       return;
@@ -212,6 +228,7 @@ const RequisitionSubmit: React.FC = () => {
                 specialInstructions: '',
                 contrastRequired: false,
                 contrastAllergy: false,
+                specialtyRequired: '',
                 submittedByEmail: '',
                 submittedByName: ''
               });
@@ -252,11 +269,12 @@ const RequisitionSubmit: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Date of Birth</label>
+                <label>Date of Birth *</label>
                 <input
                   type="date"
                   value={formData.patientDob}
                   onChange={(e) => setFormData({ ...formData, patientDob: e.target.value })}
+                  required
                 />
               </div>
             </div>
@@ -379,6 +397,19 @@ const RequisitionSubmit: React.FC = () => {
               />
             </div>
             <div className="form-row">
+              <div className="form-group">
+                <label>Required Radiologist Specialty *</label>
+                <select
+                  value={formData.specialtyRequired}
+                  onChange={(e) => setFormData({ ...formData, specialtyRequired: e.target.value })}
+                  required
+                >
+                  <option value="">Select specialty</option>
+                  {SPECIALTIES.map(spec => (
+                    <option key={spec} value={spec}>{spec}</option>
+                  ))}
+                </select>
+              </div>
               <div className="form-group">
                 <label>Priority</label>
                 <select

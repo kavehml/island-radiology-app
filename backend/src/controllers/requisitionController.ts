@@ -138,15 +138,29 @@ export const approveRequisition = async (req: AuthenticatedRequest, res: Respons
     // Approve the requisition
     const requisition = await Requisition.approve(id, req.user.id, reviewNotes);
 
-    // Automatically assign to optimal site
+    // Automatically assign to optimal site (considers radiologist specialty)
     try {
       const routingResult = await RequisitionRouter.routeRequisitionToOptimalSite(id);
+      
+      // Automatically assign to a radiologist at the assigned site if specialty is specified
+      let assignedRadiologist = null;
+      if (requisition.specialty_required) {
+        try {
+          assignedRadiologist = await RequisitionRouter.assignToRadiologist(id, routingResult.assignedSiteId, requisition.specialty_required);
+        } catch (radiologistError) {
+          console.error('Failed to auto-assign radiologist:', radiologistError);
+          // Continue even if radiologist assignment fails
+        }
+      }
+      
       res.json({
         ...requisition,
         assigned_site_id: routingResult.assignedSiteId,
         assigned_site_name: routingResult.assignedSiteName,
         assignment_reason: routingResult.reasoning,
-        routing_score: routingResult.score
+        routing_score: routingResult.score,
+        assigned_radiologist_id: assignedRadiologist?.radiologistId || null,
+        assigned_radiologist_name: assignedRadiologist?.radiologistName || null
       });
     } catch (routingError) {
       // If routing fails, still return approved requisition but log the error

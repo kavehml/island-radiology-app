@@ -156,7 +156,7 @@ class RequisitionRouter {
     return Math.round(avgAvailability * 30);
   }
 
-  static async calculateRadiologistAvailability(site: SiteRow, _requisition: RequisitionRow): Promise<number> {
+  static async calculateRadiologistAvailability(site: SiteRow, requisition: RequisitionRow): Promise<number> {
     const today = new Date();
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
@@ -172,6 +172,30 @@ class RequisitionRouter {
     }
 
     const radiologistIds = [...new Set(schedules.map((s: any) => s.radiologist_id))] as number[];
+    
+    // If specialty is required, check if any radiologists at this site have that specialty
+    if (requisition.specialty_required) {
+      const specialtyMatch = await pool.query(
+        `SELECT COUNT(DISTINCT rs.radiologist_id) as count
+         FROM radiologist_specialties rs
+         INNER JOIN radiologist_sites rss ON rs.radiologist_id = rss.radiologist_id
+         WHERE rss.site_id = $1 
+         AND rs.specialty = $2
+         AND rs.radiologist_id = ANY($3::int[])`,
+        [site.id, requisition.specialty_required, radiologistIds]
+      );
+      
+      const matchCount = parseInt(specialtyMatch.rows[0]?.count || '0');
+      if (matchCount > 0) {
+        // Specialty match: high score (20-25 points)
+        return Math.min(25, 15 + (matchCount * 5));
+      } else {
+        // No specialty match: low score (5-10 points)
+        return Math.min(10, radiologistIds.length * 2);
+      }
+    }
+    
+    // No specialty requirement: general availability score
     const availabilityScore = Math.min(25, radiologistIds.length * 5);
     return availabilityScore;
   }
@@ -254,9 +278,65 @@ class RequisitionRouter {
       reasons.push('can accommodate time-sensitive request');
     }
 
+    if (requisition.specialty_required) {
+      reasons.push(`radiologist with ${requisition.specialty_required} specialty available`);
+    }
+
     return reasons.length > 0 
       ? `Selected ${site.name} based on: ${reasons.join(', ')}`
       : `Selected ${site.name} as the best available option`;
+  }
+
+  /**
+   * Assign a requisition to a radiologist at a site based on specialty
+   */
+  static async assignToRadiologist(requisitionId: number, siteId: number, specialty: string): Promise<{ radiologistId: number; radiologistName: string }> {
+    // Find radiologists at this site with the required specialty
+    const result = await pool.query(
+      `SELECT DISTINCT r.id, r.name, rs.proficiency_level
+       FROM radiologists r
+       INNER JOIN radiologist_sites rss ON r.id = rss.radiologist_id
+       INNER JOIN radiologist_specialties rs ON r.id = rs.radiologist_id
+       WHERE rss.site_id = $1 
+       AND rs.specialty = $2
+       ORDER BY rs.proficiency_level DESC, r.name
+       LIMIT 1`,
+      [siteId, specialty]
+    );
+
+    let radiologistId: number;
+    let radiologistName: string;
+
+    if (result.rows.length === 0) {
+      // Fallback: find any radiologist at the site
+      const fallbackResult = await pool.query(
+        `SELECT DISTINCT r.id, r.name
+         FROM radiologists r
+         INNER JOIN radiologist_sites rss ON r.id = rss.radiologist_id
+         WHERE rss.site_id = $1
+         ORDER BY r.name
+         LIMIT 1`,
+        [siteId]
+      );
+
+      if (fallbackResult.rows.length === 0) {
+        throw new Error(`No radiologists available at site ${siteId}`);
+      }
+
+      radiologistId = fallbackResult.rows[0].id;
+      radiologistName = fallbackResult.rows[0].name;
+    } else {
+      radiologistId = result.rows[0].id;
+      radiologistName = result.rows[0].name;
+    }
+
+    // Update the requisition with the assigned radiologist
+    await Requisition.assignToRadiologist(requisitionId, radiologistId);
+
+    return {
+      radiologistId,
+      radiologistName
+    };
   }
 }
 

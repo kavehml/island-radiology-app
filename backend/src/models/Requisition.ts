@@ -19,6 +19,7 @@ export interface RequisitionRow {
   body_part: string | null;
   clinical_indication: string | null;
   priority: 'stat' | 'urgent' | 'routine' | 'low';
+  specialty_required: string | null;
   is_time_sensitive: boolean;
   time_sensitive_deadline: Date | null;
   previous_studies: string | null;
@@ -36,6 +37,7 @@ export interface RequisitionRow {
   assigned_site_id: number | null;
   assigned_at: Date | null;
   assignment_reason: string | null;
+  assigned_radiologist_id: number | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -55,6 +57,7 @@ export interface RequisitionFormData {
   bodyPart?: string;
   clinicalIndication?: string;
   priority?: 'stat' | 'urgent' | 'routine' | 'low';
+  specialtyRequired?: string; // Required radiologist specialty
   isTimeSensitive?: boolean;
   timeSensitiveDeadline?: string;
   previousStudies?: string;
@@ -72,12 +75,12 @@ class Requisition {
         patient_name, patient_dob, patient_phone, patient_email,
         referring_physician_name, referring_physician_npi, referring_physician_phone, referring_physician_email,
         clinic_name, clinic_address,
-        order_type, body_part, clinical_indication, priority,
+        order_type, body_part, clinical_indication, priority, specialty_required,
         is_time_sensitive, time_sensitive_deadline,
         previous_studies, special_instructions, contrast_required, contrast_allergy,
         submitted_by_email, submitted_by_name, submission_method, api_key_id
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
        RETURNING *`,
       [
         data.patientName,
@@ -94,6 +97,7 @@ class Requisition {
         data.bodyPart || null,
         data.clinicalIndication || null,
         data.priority || 'routine',
+        data.specialtyRequired || null,
         data.isTimeSensitive || false,
         data.timeSensitiveDeadline || null,
         data.previousStudies || null,
@@ -165,6 +169,16 @@ class Requisition {
        SET assigned_site_id = $1, assigned_at = CURRENT_TIMESTAMP, assignment_reason = $2, updated_at = CURRENT_TIMESTAMP
        WHERE id = $3 RETURNING *`,
       [siteId, reason, requisitionId]
+    );
+    return result.rows[0] as RequisitionRow;
+  }
+
+  static async assignToRadiologist(requisitionId: number, radiologistId: number): Promise<RequisitionRow> {
+    const result = await pool.query(
+      `UPDATE requisitions 
+       SET assigned_radiologist_id = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 RETURNING *`,
+      [radiologistId, requisitionId]
     );
     return result.rows[0] as RequisitionRow;
   }
