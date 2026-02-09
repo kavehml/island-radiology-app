@@ -4,6 +4,7 @@ import Order from '../models/Order';
 import RequisitionRouter from '../services/requisitionRouter';
 import { ApiAuthenticatedRequest } from '../middleware/apiAuth';
 import { AuthenticatedRequest } from '../types/api';
+import { sendRequisitionConfirmationEmail } from '../services/emailService';
 
 // Public endpoint for submitting requisitions (no auth required, but can use API key)
 export const submitRequisition = async (req: Request | ApiAuthenticatedRequest, res: Response): Promise<void> => {
@@ -23,6 +24,29 @@ export const submitRequisition = async (req: Request | ApiAuthenticatedRequest, 
     const apiKeyId = (req as ApiAuthenticatedRequest).apiKey?.id || null;
 
     const requisition = await Requisition.create(data, submissionMethod, apiKeyId);
+
+    // Send confirmation email to submitter if email is provided
+    if (data.submittedByEmail && data.submittedByName) {
+      try {
+        await sendRequisitionConfirmationEmail({
+          to: data.submittedByEmail,
+          requisitionNumber: requisition.requisition_number,
+          patientName: data.patientName,
+          orderType: data.orderType,
+          submittedByName: data.submittedByName,
+          submittedAt: new Date(requisition.created_at).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        });
+      } catch (emailError) {
+        // Log error but don't fail the request if email fails
+        console.error('Failed to send confirmation email:', emailError);
+      }
+    }
 
     res.status(201).json({
       success: true,
