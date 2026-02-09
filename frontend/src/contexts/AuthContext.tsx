@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 export interface User {
   id: number;
