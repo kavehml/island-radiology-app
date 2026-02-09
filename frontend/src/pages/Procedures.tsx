@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProcedureTimeForm from '../components/Procedures/ProcedureTimeForm';
 import { Radiologist, Procedure } from '../types';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 const CATEGORIES = ['CT', 'MRI', 'Ultrasound', 'PET', 'X-Ray'];
 

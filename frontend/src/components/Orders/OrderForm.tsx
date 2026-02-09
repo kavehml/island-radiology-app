@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Site, OrderFormData as OrderFormDataType } from '../../types';
-
-const API_URL = '/api';
+import { API_URL } from '../../config/api';
 
 const SPECIALTIES = [
   'General',

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Radiologist } from '../../types';
-
-const API_URL = '/api';
+import { API_URL } from '../../config/api';
 
 interface AddSpecialtyFormProps {
   radiologist: Radiologist;

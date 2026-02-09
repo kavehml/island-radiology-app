@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Site, Order } from '../types';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 interface DashboardStats {
   totalSites: number;

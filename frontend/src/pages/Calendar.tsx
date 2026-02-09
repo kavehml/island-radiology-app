@@ -4,7 +4,7 @@ import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 import { format } from 'date-fns';
 
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];

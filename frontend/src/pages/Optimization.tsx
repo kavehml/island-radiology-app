@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 interface CombinableOrderGroup {
   patientId: string;

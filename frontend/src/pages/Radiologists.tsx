@@ -4,8 +4,7 @@ import RadiologistForm from '../components/Radiologists/RadiologistForm';
 import AssignSiteForm from '../components/Radiologists/AssignSiteForm';
 import AddSpecialtyForm from '../components/Radiologists/AddSpecialtyForm';
 import { Radiologist, Site } from '../types';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 const SPECIALTIES = [
   'General',

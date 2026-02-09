@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Radiologist } from '../../types';
-
-const API_URL = '/api';
+import { API_URL } from '../../config/api';
 
 const SPECIALTIES = [
   'General',
@@ -102,9 +101,17 @@ function RadiologistForm({ radiologist, onClose, onSuccess }: RadiologistFormPro
 
     try {
       let radiologistId: number;
+      // Convert empty strings to null for optional time fields
+      const payload = {
+        ...formData,
+        workHoursStart: formData.workHoursStart || null,
+        workHoursEnd: formData.workHoursEnd || null,
+        workDays: formData.workDays || null
+      };
+      
       if (radiologist) {
         // Update existing radiologist
-        const response = await axios.put(`${API_URL}/radiologists/${radiologist.id}`, formData);
+        const response = await axios.put(`${API_URL}/radiologists/${radiologist.id}`, payload);
         radiologistId = response.data.id;
         
         // Update specialties - remove old ones and add new ones
@@ -112,7 +119,7 @@ function RadiologistForm({ radiologist, onClose, onSuccess }: RadiologistFormPro
         // Note: We'd need a delete endpoint for this, for now we'll just add/update
       } else {
         // Create new radiologist
-        const response = await axios.post(`${API_URL}/radiologists`, formData);
+        const response = await axios.post(`${API_URL}/radiologists`, payload);
         radiologistId = response.data.id;
       }
 

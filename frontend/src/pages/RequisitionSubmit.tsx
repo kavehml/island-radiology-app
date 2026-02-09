@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './RequisitionSubmit.css';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 interface RequisitionFormData {
   // Patient Information

@@ -3,8 +3,7 @@ import axios from 'axios';
 import OrderForm from '../components/Orders/OrderForm';
 import OrderRouting from '../components/Orders/OrderRouting';
 import { Order } from '../types';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
