@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import CalendarComponent from 'react-calendar';
+import CalendarComponent, { Value } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -41,11 +41,19 @@ function Calendar() {
     }
   };
 
-  const handleDateChange = (newDate: Date): void => {
-    setDate(newDate);
-    const startOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
-    const endOfMonth = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
-    fetchSchedules(startOfMonth, endOfMonth);
+  const handleDateChange = (value: Value): void => {
+    if (value instanceof Date) {
+      setDate(value);
+      const startOfMonth = new Date(value.getFullYear(), value.getMonth(), 1);
+      const endOfMonth = new Date(value.getFullYear(), value.getMonth() + 1, 0);
+      fetchSchedules(startOfMonth, endOfMonth);
+    } else if (Array.isArray(value) && value[0] instanceof Date) {
+      // Handle date range selection
+      setDate(value[0]);
+      const startOfMonth = new Date(value[0].getFullYear(), value[0].getMonth(), 1);
+      const endOfMonth = new Date(value[0].getFullYear(), value[0].getMonth() + 1, 0);
+      fetchSchedules(startOfMonth, endOfMonth);
+    }
   };
 
   const getSchedulesForDate = (date: Date): Schedule[] => {
