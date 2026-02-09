@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Site } from '../../types';
-
-const API_URL = '/api';
+import { API_URL } from '../../config/api';
 
 interface FacilityFormProps {
   site: Site;
@@ -16,7 +15,6 @@ type FacilitiesType = {
   Ultrasound: number;
   PET: number;
   'X-Ray': number;
-  US: number;
 };
 
 function FacilityForm({ site, onClose, onSuccess }: FacilityFormProps) {
@@ -25,8 +23,7 @@ function FacilityForm({ site, onClose, onSuccess }: FacilityFormProps) {
     MRI: 0,
     Ultrasound: 0,
     PET: 0,
-    'X-Ray': 0,
-    US: 0  // Alternative name for Ultrasound
+    'X-Ray': 0
   });
 
   useEffect(() => {

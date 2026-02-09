@@ -3,8 +3,7 @@ import axios from 'axios';
 import SiteForm from '../components/SiteManagement/SiteForm';
 import FacilityForm from '../components/SiteManagement/FacilityForm';
 import { Site } from '../types';
-
-const API_URL = '/api';
+import { API_URL } from '../config/api';
 
 function Sites() {
   const [sites, setSites] = useState<Site[]>([]);
@@ -34,7 +33,7 @@ function Sites() {
     }
   };
 
-  const equipmentTypes = ['CT', 'MRI', 'Ultrasound', 'US', 'PET', 'X-Ray'];
+  const equipmentTypes = ['CT', 'MRI', 'Ultrasound', 'PET', 'X-Ray'];
 
   return (
     <div className="sites-page">

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
-const API_URL = '/api';
-
-const EQUIPMENT_TYPES = ['CT', 'MRI', 'Ultrasound', 'US', 'PET', 'X-Ray'] as const;
+const EQUIPMENT_TYPES = ['CT', 'MRI', 'Ultrasound', 'PET', 'X-Ray'] as const;
 
 type EquipmentType = typeof EQUIPMENT_TYPES[number];
 
@@ -16,7 +15,6 @@ type FacilitiesType = {
   CT: number;
   MRI: number;
   Ultrasound: number;
-  US: number;
   PET: number;
   'X-Ray': number;
 };
@@ -33,7 +31,6 @@ function SiteForm({ onClose, onSuccess }: SiteFormProps) {
       CT: 0,
       MRI: 0,
       Ultrasound: 0,
-      US: 0,
       PET: 0,
       'X-Ray': 0
     }
