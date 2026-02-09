@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import RadiologistForm from '../components/Radiologists/RadiologistForm';
 import AssignSiteForm from '../components/Radiologists/AssignSiteForm';
 import AddSpecialtyForm from '../components/Radiologists/AddSpecialtyForm';
+import { Radiologist, Site } from '../types';
 
 const API_URL = '/api';
 
@@ -21,9 +22,9 @@ const SPECIALTIES = [
 ];
 
 function Radiologists() {
-  const [radiologists, setRadiologists] = useState([]);
-  const [sites, setSites] = useState([]);
-  const [selectedRadiologist, setSelectedRadiologist] = useState(null);
+  const [radiologists, setRadiologists] = useState<Radiologist[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
+  const [selectedRadiologist, setSelectedRadiologist] = useState<Radiologist | null>(null);
   const [showRadiologistForm, setShowRadiologistForm] = useState(false);
   const [showAssignSiteForm, setShowAssignSiteForm] = useState(false);
   const [showSpecialtyForm, setShowSpecialtyForm] = useState(false);
@@ -51,7 +52,7 @@ function Radiologists() {
     }
   };
 
-  const handleRadiologistSelect = async (radiologistId) => {
+  const handleRadiologistSelect = async (radiologistId: number): Promise<void> => {
     try {
       const response = await axios.get(`${API_URL}/radiologists/${radiologistId}`);
       setSelectedRadiologist(response.data);
@@ -60,7 +61,7 @@ function Radiologists() {
     }
   };
 
-  const formatWorkHours = (start, end) => {
+  const formatWorkHours = (start: string | null, end: string | null): string => {
     if (!start || !end) return 'Not set';
     return `${start} - ${end}`;
   };
@@ -90,7 +91,7 @@ function Radiologists() {
               {radiologist.work_days && <p>Days: {radiologist.work_days}</p>}
               {radiologist.specialties && radiologist.specialties.length > 0 && (
                 <p style={{ marginTop: '0.5rem', color: '#3498db', fontWeight: '500' }}>
-                  Specialties: {radiologist.specialties.map(s => s.specialty).join(', ')}
+                  Specialties: {radiologist.specialties.map((s: { specialty: string }) => s.specialty).join(', ')}
                 </p>
               )}
             </div>
