@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './RequisitionSubmit.css';
@@ -91,7 +91,9 @@ const RequisitionSubmit: React.FC = () => {
         },
       });
       
-      console.log('Response received:', response.data);
+      console.log('Full response:', response);
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
       
       // Handle different response structures - be more flexible
       let requisitionNumber = null;
@@ -103,40 +105,70 @@ const RequisitionSubmit: React.FC = () => {
           response.data.requisition_number ||
           response.data.data?.requisition_number ||
           response.data.id?.toString();
+        
+        console.log('Extracted requisition number:', requisitionNumber);
       }
       
-      // If we got a successful response (201 or 200), show success
+      // If we got a successful response (201 or 200), ALWAYS show success
       if (response.status === 201 || response.status === 200) {
+        console.log('Success! Setting requisition number and submitted state');
+        
         if (requisitionNumber) {
           setRequisitionNumber(requisitionNumber);
         } else {
           // Still show success even without requisition number
+          console.log('No requisition number found, using default');
           setRequisitionNumber('Submitted Successfully');
         }
+        
+        // Force state update
         setSubmitted(true);
+        console.log('Submitted state set to true');
+        
+        // Double-check after a brief delay
+        setTimeout(() => {
+          console.log('State check - submitted:', submitted);
+          console.log('State check - requisitionNumber:', requisitionNumber);
+        }, 100);
       } else {
+        console.error('Unexpected status code:', response.status);
         setError('Invalid response from server. Please try again.');
       }
     } catch (err: any) {
       console.error('Submission error:', err);
       console.error('Error response:', err.response);
+      console.error('Error request:', err.request);
       
       if (err.response) {
         // Server responded with error
-        setError(err.response.data?.error || `Server error: ${err.response.status} ${err.response.statusText}`);
+        const errorMsg = err.response.data?.error || `Server error: ${err.response.status} ${err.response.statusText}`;
+        console.error('Server error message:', errorMsg);
+        setError(errorMsg);
       } else if (err.request) {
         // Request made but no response
+        console.error('No response received from server');
         setError('Unable to connect to server. Please check your internet connection and try again.');
       } else {
         // Something else happened
+        console.error('Other error:', err.message);
         setError(err.message || 'Failed to submit requisition. Please try again.');
       }
     } finally {
       setLoading(false);
+      console.log('Loading set to false');
     }
   };
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Current state - submitted:', submitted);
+    console.log('Current state - requisitionNumber:', requisitionNumber);
+    console.log('Current state - loading:', loading);
+    console.log('Current state - error:', error);
+  }, [submitted, requisitionNumber, loading, error]);
+
   if (submitted) {
+    console.log('Rendering success screen');
     return (
       <div className="requisition-submit-page">
         <div className="success-container">
