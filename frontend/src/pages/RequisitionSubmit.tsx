@@ -121,15 +121,26 @@ const RequisitionSubmit: React.FC = () => {
           setRequisitionNumber('Submitted Successfully');
         }
         
-        // Force state update
-        setSubmitted(true);
-        console.log('Submitted state set to true');
+        // Force state update - use functional update to ensure it works
+        setSubmitted((prev) => {
+          console.log('Setting submitted from', prev, 'to true');
+          return true;
+        });
         
-        // Double-check after a brief delay
-        setTimeout(() => {
-          console.log('State check - submitted:', submitted);
-          console.log('State check - requisitionNumber:', requisitionNumber);
-        }, 100);
+        // Also set requisition number with functional update
+        if (requisitionNumber) {
+          setRequisitionNumber((prev) => {
+            console.log('Setting requisition number from', prev, 'to', requisitionNumber);
+            return requisitionNumber;
+          });
+        } else {
+          setRequisitionNumber((prev) => {
+            console.log('Setting requisition number to default');
+            return 'Submitted Successfully';
+          });
+        }
+        
+        console.log('State updates queued');
       } else {
         console.error('Unexpected status code:', response.status);
         setError('Invalid response from server. Please try again.');
