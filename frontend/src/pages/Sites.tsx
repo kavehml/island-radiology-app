@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import SiteForm from '../components/SiteManagement/SiteForm';
 import FacilityForm from '../components/SiteManagement/FacilityForm';
+import { Site } from '../types';
 
 const API_URL = '/api';
 
 function Sites() {
-  const [sites, setSites] = useState([]);
-  const [selectedSite, setSelectedSite] = useState(null);
+  const [sites, setSites] = useState<Site[]>([]);
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [showSiteForm, setShowSiteForm] = useState(false);
   const [showFacilityForm, setShowFacilityForm] = useState(false);
 
@@ -24,7 +25,7 @@ function Sites() {
     }
   };
 
-  const handleSiteSelect = async (siteId) => {
+  const handleSiteSelect = async (siteId: number): Promise<void> => {
     try {
       const response = await axios.get(`${API_URL}/sites/${siteId}`);
       setSelectedSite(response.data);
@@ -73,7 +74,7 @@ function Sites() {
                 </thead>
                 <tbody>
                   {equipmentTypes.map(type => {
-                    const facility = selectedSite.facilities?.find(f => f.equipment_type === type);
+                    const facility = selectedSite.facilities?.find((f: { equipment_type: string }) => f.equipment_type === type);
                     return (
                       <tr key={type}>
                         <td>{type}</td>
