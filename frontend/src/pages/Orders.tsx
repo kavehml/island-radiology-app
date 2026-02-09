@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import OrderForm from '../components/Orders/OrderForm';
 import OrderRouting from '../components/Orders/OrderRouting';
+import { Order } from '../types';
 
 const API_URL = '/api';
 
 function Orders() {
-  const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
@@ -34,8 +35,8 @@ function Orders() {
     }
   };
 
-  const getPriorityClass = (priority) => {
-    const map = {
+  const getPriorityClass = (priority: string): string => {
+    const map: Record<string, string> = {
       'stat': 'priority-stat',
       'urgent': 'priority-urgent',
       'routine': 'priority-routine',
@@ -97,7 +98,7 @@ function Orders() {
             </tr>
           </thead>
           <tbody>
-            {orders.map(order => (
+            {orders.map((order: Order) => (
               <tr key={order.id}>
                 <td>{order.patient_name || order.patient_id}</td>
                 <td>{order.order_type}</td>

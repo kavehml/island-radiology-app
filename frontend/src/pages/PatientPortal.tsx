@@ -85,15 +85,6 @@ const PatientPortal: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string | null): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const formatDateTime = (dateString: string | null): string => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('en-US', {
