@@ -29,6 +29,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/patient-portal" element={<PatientPortal />} />
+        <Route path="/requisition-submit" element={<RequisitionSubmit />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );
