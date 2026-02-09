@@ -10,9 +10,29 @@ const PORT: number = parseInt(process.env.PORT || '5001', 10);
 // Middleware
 // CORS configuration - allow frontend URLs in production
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL
+      ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+      : ['http://localhost:3000', 'http://localhost:3001'];
+    
+    // Also allow Railway frontend domains
+    const railwayPattern = /\.railway\.app$/;
+    if (railwayPattern.test(origin)) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
