@@ -20,9 +20,9 @@ function Orders() {
     fetchOrders();
   }, [filters]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (): Promise<void> => {
     try {
-      const params = {};
+      const params: Record<string, string | boolean> = {};
       if (filters.status) params.status = filters.status;
       if (filters.orderType) params.orderType = filters.orderType;
       if (filters.timeSensitive === 'true') params.timeSensitive = true;
@@ -30,7 +30,7 @@ function Orders() {
 
       const response = await axios.get(`${API_URL}/orders`, { params });
       setOrders(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching orders:', error);
     }
   };

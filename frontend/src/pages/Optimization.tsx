@@ -1,14 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 
 const API_URL = '/api';
 
+interface CombinableOrderGroup {
+  patientId: string;
+  siteId: number;
+  orderTypes: string[];
+  physicians: string[];
+  potentialSavings: number;
+  orders: Array<{ id: number }>;
+}
+
+interface OptimizationResult {
+  averageWorkload?: number;
+  overworkedSites?: Array<{ siteId: number; workload: number }>;
+  underworkedSites?: Array<{ siteId: number; workload: number }>;
+  recommendations?: Array<{
+    reason: string;
+    radiologistName: string;
+    fromSite: number;
+    toSite: number;
+  }>;
+}
+
 function Optimization() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [optimizationResult, setOptimizationResult] = useState(null);
-  const [combinableOrders, setCombinableOrders] = useState([]);
+  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
+  const [combinableOrders, setCombinableOrders] = useState<CombinableOrderGroup[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -30,9 +51,10 @@ function Optimization() {
         endDate
       });
       setOptimizationResult(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error optimizing:', error);
-      alert('Error optimizing: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error optimizing: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -47,7 +69,7 @@ function Optimization() {
     }
   };
 
-  const handleCombineOrders = async (orderIds, scheduledDate, scheduledTime) => {
+  const handleCombineOrders = async (orderIds: number[], scheduledDate: string, scheduledTime: string): Promise<void> => {
     try {
       await axios.post(`${API_URL}/optimization/combine-orders`, {
         orderIds,
@@ -56,9 +78,10 @@ function Optimization() {
       });
       alert('Orders combined successfully!');
       fetchCombinableOrders();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error combining orders:', error);
-      alert('Error combining orders: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error combining orders: ' + errorMessage);
     }
   };
 
@@ -155,13 +178,15 @@ function Optimization() {
                 />
                 <button
                   onClick={() => {
-                    const date = document.getElementById(`date-${idx}`).value;
-                    const time = document.getElementById(`time-${idx}`).value;
-                    handleCombineOrders(
-                      group.orders.map(o => o.id),
-                      date,
-                      time
-                    );
+                    const dateElement = document.getElementById(`date-${idx}`) as HTMLInputElement | null;
+                    const timeElement = document.getElementById(`time-${idx}`) as HTMLInputElement | null;
+                    if (dateElement && timeElement) {
+                      handleCombineOrders(
+                        group.orders.map((o: { id: number }) => o.id),
+                        dateElement.value,
+                        timeElement.value
+                      );
+                    }
                   }}
                 >
                   Combine These Orders
