@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './RequisitionSubmit.css';
@@ -133,12 +133,10 @@ const RequisitionSubmit: React.FC = () => {
         const finalRequisitionNumber = requisitionNumber || 'Submitted Successfully';
         console.log('Final requisition number:', finalRequisitionNumber);
         
-        // Use functional updates to ensure state is set correctly
-        setRequisitionNumber(() => finalRequisitionNumber);
-        setSubmitted(() => {
-          console.log('Setting submitted to true');
-          return true;
-        });
+        // Set state directly since we're not using previous values
+        setRequisitionNumber(finalRequisitionNumber);
+        setSubmitted(true);
+        console.log('Setting submitted to true');
         
         console.log('State updates completed');
       } else {
