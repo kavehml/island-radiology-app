@@ -68,22 +68,53 @@ const RequisitionSubmit: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [requisitionNumber, setRequisitionNumber] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!formData.patientName || !formData.referringPhysicianName || !formData.orderType) {
       setError('Please fill in all required fields (marked with *)');
+      setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.post(`${API_URL}/requisitions/submit`, formData);
-      setRequisitionNumber(response.data.requisition.requisition_number);
-      setSubmitted(true);
+      console.log('Submitting requisition to:', `${API_URL}/requisitions/submit`);
+      console.log('Form data:', formData);
+      
+      const response = await axios.post(`${API_URL}/requisitions/submit`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Response received:', response.data);
+      
+      if (response.data.requisition && response.data.requisition.requisition_number) {
+        setRequisitionNumber(response.data.requisition.requisition_number);
+        setSubmitted(true);
+      } else {
+        setError('Invalid response from server. Please try again.');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to submit requisition. Please try again.');
+      console.error('Submission error:', err);
+      console.error('Error response:', err.response);
+      
+      if (err.response) {
+        // Server responded with error
+        setError(err.response.data?.error || `Server error: ${err.response.status} ${err.response.statusText}`);
+      } else if (err.request) {
+        // Request made but no response
+        setError('Unable to connect to server. Please check your internet connection and try again.');
+      } else {
+        // Something else happened
+        setError(err.message || 'Failed to submit requisition. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -394,8 +425,8 @@ const RequisitionSubmit: React.FC = () => {
           </section>
 
           <div className="form-actions">
-            <button type="submit" className="submit-button">
-              Submit Requisition
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? 'Submitting...' : 'Submit Requisition'}
             </button>
           </div>
         </form>
