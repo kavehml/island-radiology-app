@@ -153,15 +153,65 @@ export const approveRequisition = async (req: AuthenticatedRequest, res: Respons
         }
       }
       
-      res.json({
-        ...requisition,
-        assigned_site_id: routingResult.assignedSiteId,
-        assigned_site_name: routingResult.assignedSiteName,
-        assignment_reason: routingResult.reasoning,
-        routing_score: routingResult.score,
-        assigned_radiologist_id: assignedRadiologist?.radiologistId || null,
-        assigned_radiologist_name: assignedRadiologist?.radiologistName || null
-      });
+      // Automatically convert approved requisition to an order
+      try {
+        const orderData = {
+          patientId: requisition.patient_id || null,
+          patientName: requisition.patient_name,
+          orderingPhysician: requisition.referring_physician_name,
+          physicianSpecialty: null,
+          siteId: routingResult.assignedSiteId || null,
+          orderType: requisition.order_type,
+          bodyPart: requisition.body_part || null,
+          priority: requisition.priority || 'routine',
+          specialtyRequired: requisition.specialty_required || null,
+          isTimeSensitive: requisition.is_time_sensitive || false,
+          timeSensitiveDeadline: requisition.time_sensitive_deadline || null,
+          status: 'pending' as const
+        };
+
+        const order = await Order.create(orderData);
+        
+        // Assign the order to the same site as the requisition
+        if (routingResult.assignedSiteId) {
+          await Order.updateAssignedSite(order.id, routingResult.assignedSiteId, routingResult.reasoning);
+        }
+        
+        // Mark requisition as converted
+        await Requisition.convertToOrder(id, order.id);
+        
+        // Update requisition status to 'converted'
+        const updatedRequisition = await Requisition.getById(id);
+        
+        res.json({
+          ...updatedRequisition,
+          assigned_site_id: routingResult.assignedSiteId,
+          assigned_site_name: routingResult.assignedSiteName,
+          assignment_reason: routingResult.reasoning,
+          routing_score: routingResult.score,
+          assigned_radiologist_id: assignedRadiologist?.radiologistId || null,
+          assigned_radiologist_name: assignedRadiologist?.radiologistName || null,
+          converted_to_order_id: order.id,
+          order: {
+            id: order.id,
+            status: order.status,
+            assigned_site_id: order.assigned_site_id
+          }
+        });
+      } catch (conversionError) {
+        console.error('Failed to convert requisition to order:', conversionError);
+        // Still return approved requisition even if conversion fails
+        res.json({
+          ...requisition,
+          assigned_site_id: routingResult.assignedSiteId,
+          assigned_site_name: routingResult.assignedSiteName,
+          assignment_reason: routingResult.reasoning,
+          routing_score: routingResult.score,
+          assigned_radiologist_id: assignedRadiologist?.radiologistId || null,
+          assigned_radiologist_name: assignedRadiologist?.radiologistName || null,
+          warning: 'Requisition approved and assigned, but automatic order conversion failed. Please convert manually.'
+        });
+      }
     } catch (routingError) {
       // If routing fails, still return approved requisition but log the error
       console.error('Failed to auto-assign requisition:', routingError);
