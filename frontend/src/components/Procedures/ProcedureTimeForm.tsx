@@ -8,11 +8,11 @@ interface ProcedureTimeFormProps {
 }
 
 function ProcedureTimeForm({ procedure, currentTime, onTimeUpdate }: ProcedureTimeFormProps) {
-  const [time, setTime] = useState(currentTime || '');
+  const [time, setTime] = useState<string>(currentTime ? currentTime.toString() : '');
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    setTime(currentTime || '');
+    setTime(currentTime ? currentTime.toString() : '');
     setIsEditing(false);
   }, [currentTime]);
 
@@ -24,8 +24,8 @@ function ProcedureTimeForm({ procedure, currentTime, onTimeUpdate }: ProcedureTi
     }
   };
 
-  const handleCancel = () => {
-    setTime(currentTime || '');
+  const handleCancel = (): void => {
+    setTime(currentTime ? currentTime.toString() : '');
     setIsEditing(false);
   };
 

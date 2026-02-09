@@ -68,11 +68,11 @@ function AssignSiteForm({ radiologist, sites, onClose, onSuccess }: AssignSiteFo
       <div className="modal-content">
         <h3>Assign {radiologist?.name} to Site</h3>
         
-        {assignedSites.length > 0 && (
+        {assignedSites.length > 0 && radiologist.sites && (
           <div style={{ marginBottom: '1rem' }}>
             <h4>Currently Assigned Sites:</h4>
             <ul>
-              {radiologist.sites.map(site => (
+              {radiologist.sites.map((site: Site) => (
                 <li key={site.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span>{site.name}</span>
                   <button 

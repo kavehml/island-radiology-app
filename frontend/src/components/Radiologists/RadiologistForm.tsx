@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Radiologist } from '../../types';
 
 const API_URL = '/api';
 
@@ -17,16 +18,27 @@ const SPECIALTIES = [
   'Nuclear Medicine'
 ];
 
-function RadiologistForm({ radiologist, onClose, onSuccess }) {
+interface SpecialtyFormData {
+  specialty: string;
+  proficiencyLevel: number;
+}
+
+interface RadiologistFormProps {
+  radiologist?: Radiologist | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function RadiologistForm({ radiologist, onClose, onSuccess }: RadiologistFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'radiologist',
+    role: 'radiologist' as 'radiologist' | 'admin',
     workHoursStart: '',
     workHoursEnd: '',
     workDays: 'Mon-Fri'
   });
-  const [specialties, setSpecialties] = useState([]); // Array of {specialty, proficiencyLevel}
+  const [specialties, setSpecialties] = useState<SpecialtyFormData[]>([]);
 
   useEffect(() => {
     if (radiologist) {
@@ -41,7 +53,7 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
       // Load existing specialties when editing
       if (radiologist.specialties && radiologist.specialties.length > 0) {
         setSpecialties(
-          radiologist.specialties.map(s => ({
+          radiologist.specialties.map((s: { specialty: string; proficiency_level: number }) => ({
             specialty: s.specialty,
             proficiencyLevel: s.proficiency_level
           }))
@@ -53,7 +65,7 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
     }
   }, [radiologist]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -61,32 +73,35 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
     }));
   };
 
-  const addSpecialty = () => {
+  const addSpecialty = (): void => {
     setSpecialties([...specialties, { specialty: '', proficiencyLevel: 5 }]);
   };
 
-  const removeSpecialty = (index) => {
+  const removeSpecialty = (index: number): void => {
     setSpecialties(specialties.filter((_, i) => i !== index));
   };
 
-  const updateSpecialty = (index, field, value) => {
+  const updateSpecialty = (index: number, field: 'specialty' | 'proficiencyLevel', value: string): void => {
     const updated = [...specialties];
-    updated[index][field] = field === 'proficiencyLevel' ? parseInt(value) : value;
+    updated[index] = {
+      ...updated[index],
+      [field]: field === 'proficiencyLevel' ? parseInt(value) : value
+    };
     setSpecialties(updated);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate that at least one specialty is provided when creating a new radiologist
-    const validSpecialties = specialties.filter(s => s.specialty);
+    const validSpecialties = specialties.filter((s: SpecialtyFormData) => s.specialty);
     if (!radiologist && validSpecialties.length === 0) {
       alert('Please add at least one specialty for this radiologist.');
       return;
     }
 
     try {
-      let radiologistId;
+      let radiologistId: number;
       if (radiologist) {
         // Update existing radiologist
         const response = await axios.put(`${API_URL}/radiologists/${radiologist.id}`, formData);
@@ -95,8 +110,8 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
         // Update specialties - remove old ones and add new ones
         // For simplicity, we'll remove all and re-add (you could optimize this)
         const existingSpecialties = radiologist.specialties || [];
-        const newSpecialtyNames = validSpecialties.map(s => s.specialty);
-        const toRemove = existingSpecialties.filter(s => !newSpecialtyNames.includes(s.specialty));
+        const newSpecialtyNames = validSpecialties.map((s: SpecialtyFormData) => s.specialty);
+        const toRemove = existingSpecialties.filter((s: { specialty: string }) => !newSpecialtyNames.includes(s.specialty));
         
         // Remove specialties that are no longer in the list
         // Note: We'd need a delete endpoint for this, for now we'll just add/update
@@ -109,7 +124,7 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
       // Add/update specialties
       if (validSpecialties.length > 0) {
         await Promise.all(
-          validSpecialties.map(spec =>
+          validSpecialties.map((spec: SpecialtyFormData) =>
             axios.post(`${API_URL}/radiologists/specialty`, {
               radiologistId: radiologistId,
               specialty: spec.specialty,
@@ -120,9 +135,11 @@ function RadiologistForm({ radiologist, onClose, onSuccess }) {
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error saving radiologist:', error);
-      alert('Error saving radiologist: ' + (error.response?.data?.error || error.message));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert('Error saving radiologist: ' + (axiosError.response?.data?.error || errorMessage));
     }
   };
 
