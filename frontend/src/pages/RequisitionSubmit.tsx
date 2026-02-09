@@ -93,8 +93,26 @@ const RequisitionSubmit: React.FC = () => {
       
       console.log('Response received:', response.data);
       
-      if (response.data.requisition && response.data.requisition.requisition_number) {
-        setRequisitionNumber(response.data.requisition.requisition_number);
+      // Handle different response structures - be more flexible
+      let requisitionNumber = null;
+      
+      if (response.data) {
+        // Try multiple possible response structures
+        requisitionNumber = 
+          response.data.requisition?.requisition_number || 
+          response.data.requisition_number ||
+          response.data.data?.requisition_number ||
+          response.data.id?.toString();
+      }
+      
+      // If we got a successful response (201 or 200), show success
+      if (response.status === 201 || response.status === 200) {
+        if (requisitionNumber) {
+          setRequisitionNumber(requisitionNumber);
+        } else {
+          // Still show success even without requisition number
+          setRequisitionNumber('Submitted Successfully');
+        }
         setSubmitted(true);
       } else {
         setError('Invalid response from server. Please try again.');
@@ -128,8 +146,19 @@ const RequisitionSubmit: React.FC = () => {
             <p><strong>Requisition Number:</strong></p>
             <p className="requisition-number">{requisitionNumber}</p>
             <p className="info-text">
-              Please save this requisition number for tracking purposes.
-              You can check the status of your requisition using this number.
+              {requisitionNumber && requisitionNumber !== 'Submitted Successfully' ? (
+                <>
+                  Please save this requisition number for tracking purposes.
+                  You can check the status of your requisition using this number and the patient's date of birth at our patient portal.
+                </>
+              ) : (
+                <>
+                  Your requisition has been received and is being processed.
+                  {formData.submittedByEmail && (
+                    <> A confirmation email has been sent to {formData.submittedByEmail}.</>
+                  )}
+                </>
+              )}
             </p>
           </div>
           <div className="action-buttons">
