@@ -118,7 +118,7 @@ function Optimization() {
             <h4>Optimization Results</h4>
             <p><strong>Average Workload:</strong> {optimizationResult.averageWorkload?.toFixed(2) || 0} orders</p>
             
-            {optimizationResult.overworkedSites?.length > 0 && (
+            {optimizationResult.overworkedSites && optimizationResult.overworkedSites.length > 0 && (
               <div>
                 <h5>Overworked Sites:</h5>
                 {optimizationResult.overworkedSites.map((site, idx) => (
@@ -127,7 +127,7 @@ function Optimization() {
               </div>
             )}
 
-            {optimizationResult.underworkedSites?.length > 0 && (
+            {optimizationResult.underworkedSites && optimizationResult.underworkedSites.length > 0 && (
               <div>
                 <h5>Underworked Sites:</h5>
                 {optimizationResult.underworkedSites.map((site, idx) => (
@@ -136,7 +136,7 @@ function Optimization() {
               </div>
             )}
 
-            {optimizationResult.recommendations?.length > 0 && (
+            {optimizationResult.recommendations && optimizationResult.recommendations.length > 0 && (
               <div>
                 <h5>Recommendations:</h5>
                 {optimizationResult.recommendations.map((rec, idx) => (

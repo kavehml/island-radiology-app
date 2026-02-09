@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import CalendarComponent from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
@@ -6,10 +6,20 @@ import { format } from 'date-fns';
 
 const API_URL = '/api';
 
+interface Schedule {
+  id: number;
+  date: string;
+  radiologist_name: string;
+  site_name: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+}
+
 function Calendar() {
-  const [date, setDate] = useState(new Date());
-  const [schedules, setSchedules] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [date, setDate] = useState<Date>(new Date());
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -17,7 +27,7 @@ function Calendar() {
     fetchSchedules(startOfMonth, endOfMonth);
   }, [date]);
 
-  const fetchSchedules = async (startDate, endDate) => {
+  const fetchSchedules = async (startDate: Date, endDate: Date): Promise<void> => {
     try {
       const response = await axios.get(`${API_URL}/schedules`, {
         params: {
@@ -26,21 +36,21 @@ function Calendar() {
         }
       });
       setSchedules(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching schedules:', error);
     }
   };
 
-  const handleDateChange = (newDate) => {
+  const handleDateChange = (newDate: Date): void => {
     setDate(newDate);
     const startOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
     const endOfMonth = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
     fetchSchedules(startOfMonth, endOfMonth);
   };
 
-  const getSchedulesForDate = (date) => {
+  const getSchedulesForDate = (date: Date): Schedule[] => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return schedules.filter(s => s.date === dateStr);
+    return schedules.filter((s: Schedule) => s.date === dateStr);
   };
 
   return (

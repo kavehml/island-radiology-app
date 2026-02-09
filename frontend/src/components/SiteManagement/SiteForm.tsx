@@ -126,7 +126,7 @@ function SiteForm({ onClose, onSuccess }: SiteFormProps) {
                 <input
                   type="number"
                   min="0"
-                  value={formData.facilities[type]}
+                  value={formData.facilities[type].toString()}
                   onChange={(e) => handleFacilityChange(type, e.target.value)}
                   style={{ width: '100px' }}
                 />
